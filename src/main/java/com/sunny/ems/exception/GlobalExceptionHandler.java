@@ -1,8 +1,5 @@
 package com.sunny.ems.exception;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -13,24 +10,22 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class GlobalExceptionHandler {
 
 	@ExceptionHandler(ResourceNotFoundException.class)
-	public ResponseEntity<String> handleResourceNotFound(ResourceNotFoundException ex) {
-		return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
-	}
+	public ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException ex) {
 
-	@ExceptionHandler(Exception.class)
-	public ResponseEntity<String> handleGeneralException(Exception ex) {
-		ex.printStackTrace(); // 🔥 console me real error dikhega
-		return new ResponseEntity<>(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+		return new ResponseEntity<>(new ApiError(404, ex.getMessage()), HttpStatus.NOT_FOUND);
 	}
 
 	@ExceptionHandler(MethodArgumentNotValidException.class)
-	public ResponseEntity<Map<String, String>> handleValidationErrors(MethodArgumentNotValidException ex) {
+	public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex) {
 
-		Map<String, String> errors = new HashMap<>();
+		String msg = ex.getBindingResult().getFieldError().getDefaultMessage();
 
-		ex.getBindingResult().getFieldErrors()
-				.forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+		return new ResponseEntity<>(new ApiError(400, msg), HttpStatus.BAD_REQUEST);
+	}
 
-		return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
+	@ExceptionHandler(Exception.class)
+	public ResponseEntity<ApiError> handleGeneral(Exception ex) {
+
+		return new ResponseEntity<>(new ApiError(500, "Something went wrong"), HttpStatus.INTERNAL_SERVER_ERROR);
 	}
 }

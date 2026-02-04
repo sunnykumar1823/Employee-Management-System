@@ -1,8 +1,12 @@
 package com.sunny.ems.service;
 
+import com.sunny.ems.entity.User;
+
 public interface UserService {
 
-	// LOGIN METHOD
-	String login(String email, String password);
+	User register(User user);
 
+	User login(String email, String password);
+
+	User findByEmail(String email);
 }

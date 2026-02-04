@@ -1,7 +1,8 @@
 package com.sunny.ems.entity;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -16,22 +17,20 @@ public class User {
 	private Long id;
 
 	private String name;
-
-	@Column(unique = true, nullable = false)
 	private String email;
-
-	@Column(nullable = false)
 	private String password;
 
-	private String role = "USER";
+	@Enumerated(EnumType.STRING)
+	private Role role;
 
 	// getters & setters
-	public Long getId() {
-		return id;
+
+	public Role getRole() {
+		return role;
 	}
 
-	public void setId(Long id) {
-		this.id = id;
+	public void setRole(Role role) {
+		this.role = role;
 	}
 
 	public String getName() {
@@ -57,13 +56,4 @@ public class User {
 	public void setPassword(String password) {
 		this.password = password;
 	}
-
-	public String getRole() {
-		return role;
-	}
-
-	public void setRole(String role) {
-		this.role = role;
-	}
-
 }

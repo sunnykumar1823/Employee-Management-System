@@ -1,6 +1,7 @@
 package com.sunny.ems.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,7 +14,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.sunny.ems.dto.EmployeeRequestDTO;
+import com.sunny.ems.dto.EmployeeResponseDTO;
 import com.sunny.ems.entity.Employee;
+import com.sunny.ems.mapper.EmployeeMapper;
 import com.sunny.ems.service.EmployeeService;
 
 import jakarta.validation.Valid;
@@ -28,36 +32,38 @@ public class EmployeeController {
 		this.service = service;
 	}
 
-	// CREATE
 	@PostMapping
-	public ResponseEntity<Employee> saveEmployee(@Valid @RequestBody Employee employee) {
-		Employee saved = service.saveEmployee(employee);
-		return new ResponseEntity<>(saved, HttpStatus.CREATED); // 201
+	public ResponseEntity<EmployeeResponseDTO> save(@Valid @RequestBody EmployeeRequestDTO dto) {
+
+		Employee emp = EmployeeMapper.toEntity(dto);
+		Employee saved = service.saveEmployee(emp);
+
+		return new ResponseEntity<>(EmployeeMapper.toDTO(saved), HttpStatus.CREATED);
 	}
 
-	// GET ALL
 	@GetMapping
-	public ResponseEntity<List<Employee>> getAllEmployees() {
-		return ResponseEntity.ok(service.getAllEmployees()); // 200
+	public List<EmployeeResponseDTO> getAll() {
+
+		return service.getAllEmployees().stream().map(EmployeeMapper::toDTO).collect(Collectors.toList());
 	}
 
-	// GET BY ID
 	@GetMapping("/{id}")
-	public ResponseEntity<Employee> getEmployeeById(@PathVariable Long id) {
-		return ResponseEntity.ok(service.getEmployeeById(id)); // 200
+	public EmployeeResponseDTO getById(@PathVariable Long id) {
+
+		return EmployeeMapper.toDTO(service.getEmployeeById(id));
 	}
 
-	// UPDATE
 	@PutMapping("/{id}")
-	public ResponseEntity<Employee> updateEmployee(@PathVariable Long id, @Valid @RequestBody Employee emp) {
+	public EmployeeResponseDTO update(@PathVariable Long id, @Valid @RequestBody EmployeeRequestDTO dto) {
 
-		return ResponseEntity.ok(service.updateEmployee(id, emp)); // 200
+		Employee emp = EmployeeMapper.toEntity(dto);
+		return EmployeeMapper.toDTO(service.updateEmployee(id, emp));
 	}
 
-	// DELETE
 	@DeleteMapping("/{id}")
-	public ResponseEntity<Void> deleteEmployee(@PathVariable Long id) {
+	public ResponseEntity<Void> delete(@PathVariable Long id) {
+
 		service.deleteEmployee(id);
-		return ResponseEntity.noContent().build(); // 204
+		return ResponseEntity.noContent().build();
 	}
 }

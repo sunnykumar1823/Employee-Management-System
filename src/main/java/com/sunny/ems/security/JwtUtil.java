@@ -2,26 +2,60 @@ package com.sunny.ems.security;
 
 import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
+import com.sunny.ems.entity.Role;
+
+import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 
 @Component
 public class JwtUtil {
 
-	private final Key key = Keys.secretKeyFor(io.jsonwebtoken.SignatureAlgorithm.HS256);
+	private static final String SECRET = "mysupersecretkeyformyemsproject1234567890123456";
+	private static final long EXPIRATION_TIME = 1000 * 60 * 60; // 1 hour
 
-	public String generateToken(String email) {
-
-		return Jwts.builder().setSubject(email).setIssuedAt(new Date())
-				.setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60)) // 1 hour
-				.signWith(key).compact();
+	private Key getSigningKey() {
+		return Keys.hmacShaKeyFor(SECRET.getBytes());
 	}
 
-	public String extractEmail(String token) {
+	// ✅ Generate Token with ROLE
+	public String generateToken(String email, Role role) {
 
-		return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody().getSubject();
+		Map<String, Object> claims = new HashMap<>();
+		claims.put("role", role.name());
+
+		return Jwts.builder().setClaims(claims).setSubject(email).setIssuedAt(new Date())
+				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
+				.signWith(getSigningKey(), SignatureAlgorithm.HS256).compact();
+	}
+
+	// ✅ Extract Email
+	public String extractEmail(String token) {
+		return extractClaims(token).getSubject();
+	}
+
+	// ✅ Extract Role
+	public String extractRole(String token) {
+		return extractClaims(token).get("role", String.class);
+	}
+
+	// ✅ Validate Token
+	public boolean isTokenValid(String token) {
+		try {
+			extractClaims(token);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	private Claims extractClaims(String token) {
+		return Jwts.parserBuilder().setSigningKey(getSigningKey()).build().parseClaimsJws(token).getBody();
 	}
 }
