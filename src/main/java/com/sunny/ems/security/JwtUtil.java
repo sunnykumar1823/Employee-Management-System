@@ -2,8 +2,6 @@ package com.sunny.ems.security;
 
 import java.security.Key;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 import org.springframework.stereotype.Component;
 
@@ -24,28 +22,25 @@ public class JwtUtil {
 		return Keys.hmacShaKeyFor(SECRET.getBytes());
 	}
 
-	// ✅ Generate Token with ROLE
+	// Generate Token with ROLE
 	public String generateToken(String email, Role role) {
-
-		Map<String, Object> claims = new HashMap<>();
-		claims.put("role", role.name());
-
-		return Jwts.builder().setClaims(claims).setSubject(email).setIssuedAt(new Date())
+		return Jwts.builder().setSubject(email).claim("role", role.name()).setIssuedAt(new Date())
 				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
 				.signWith(getSigningKey(), SignatureAlgorithm.HS256).compact();
+
 	}
 
-	// ✅ Extract Email
+	// Extract Email
 	public String extractEmail(String token) {
 		return extractClaims(token).getSubject();
 	}
 
-	// ✅ Extract Role
+	// Extract Role
 	public String extractRole(String token) {
 		return extractClaims(token).get("role", String.class);
 	}
 
-	// ✅ Validate Token
+	// Validate Token
 	public boolean isTokenValid(String token) {
 		try {
 			extractClaims(token);

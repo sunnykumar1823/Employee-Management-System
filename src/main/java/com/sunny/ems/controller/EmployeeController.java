@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -33,6 +34,7 @@ public class EmployeeController {
 	}
 
 	@PostMapping
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<EmployeeResponseDTO> save(@Valid @RequestBody EmployeeRequestDTO dto) {
 
 		Employee emp = EmployeeMapper.toEntity(dto);
@@ -42,18 +44,22 @@ public class EmployeeController {
 	}
 
 	@GetMapping
+	@PreAuthorize("hasAnyRole('USER','ADMIN')")
 	public List<EmployeeResponseDTO> getAll() {
 
 		return service.getAllEmployees().stream().map(EmployeeMapper::toDTO).collect(Collectors.toList());
 	}
 
 	@GetMapping("/{id}")
+	@PreAuthorize("hasAnyRole('USER','ADMIN')")
+
 	public EmployeeResponseDTO getById(@PathVariable Long id) {
 
 		return EmployeeMapper.toDTO(service.getEmployeeById(id));
 	}
 
 	@PutMapping("/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
 	public EmployeeResponseDTO update(@PathVariable Long id, @Valid @RequestBody EmployeeRequestDTO dto) {
 
 		Employee emp = EmployeeMapper.toEntity(dto);
@@ -61,6 +67,7 @@ public class EmployeeController {
 	}
 
 	@DeleteMapping("/{id}")
+	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
 
 		service.deleteEmployee(id);

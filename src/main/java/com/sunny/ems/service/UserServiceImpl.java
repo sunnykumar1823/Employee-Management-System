@@ -45,4 +45,17 @@ public class UserServiceImpl implements UserService {
 	public User findByEmail(String email) {
 		return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 	}
+
+	// ✅ LOGIN LOGIC HERE
+	@Override
+	public User authenticate(String email, String password) {
+
+		User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
+
+		if (!passwordEncoder.matches(password, user.getPassword())) {
+			throw new RuntimeException("Invalid password");
+		}
+
+		return user;
+	}
 }

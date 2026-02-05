@@ -4,6 +4,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -14,6 +15,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import com.sunny.ems.security.JwtFilter;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
 
 	private final JwtFilter jwtFilter;
@@ -29,13 +31,13 @@ public class SecurityConfig {
 				.sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				.authorizeHttpRequests(auth -> auth
 
-						// ✅ Swagger allow
+						// Swagger allow
 						.requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
 
-						// ✅ Auth allow
-						.requestMatchers("/users/register", "/users/login").permitAll()
+						// Auth allow
+						.requestMatchers("/users/register", "/users/login", "/auth/refresh", "/auth/logout").permitAll()
 
-						// 🔒 Everything else protected
+						// Everything else protected
 						.anyRequest().authenticated());
 
 		http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
