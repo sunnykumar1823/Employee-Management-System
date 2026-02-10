@@ -3,6 +3,7 @@ package com.sunny.ems.controller;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.sunny.ems.dto.EmployeeRequestDTO;
@@ -33,6 +35,7 @@ public class EmployeeController {
 		this.service = service;
 	}
 
+	// ✅ CREATE (ADMIN only)
 	@PostMapping
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<EmployeeResponseDTO> save(@Valid @RequestBody EmployeeRequestDTO dto) {
@@ -43,33 +46,43 @@ public class EmployeeController {
 		return new ResponseEntity<>(EmployeeMapper.toDTO(saved), HttpStatus.CREATED);
 	}
 
+	// ✅ PAGINATION + JWT (USER & ADMIN)
 	@GetMapping
 	@PreAuthorize("hasAnyRole('USER','ADMIN')")
-	public List<EmployeeResponseDTO> getAll() {
+	public ResponseEntity<List<EmployeeResponseDTO>> getAll(@RequestParam(defaultValue = "0") int page,
+			@RequestParam(defaultValue = "5") int size) {
 
-		return service.getAllEmployees().stream().map(EmployeeMapper::toDTO).collect(Collectors.toList());
+		Page<Employee> employees = service.getAllEmployees(page, size);
+
+		List<EmployeeResponseDTO> response = employees.getContent().stream().map(EmployeeMapper::toDTO)
+				.collect(Collectors.toList());
+
+		return ResponseEntity.ok(response);
 	}
 
+	// ✅ GET BY ID
 	@GetMapping("/{id}")
 	@PreAuthorize("hasAnyRole('USER','ADMIN')")
-
-	public EmployeeResponseDTO getById(@PathVariable Long id) {
-
-		return EmployeeMapper.toDTO(service.getEmployeeById(id));
+	public ResponseEntity<EmployeeResponseDTO> getById(@PathVariable Long id) {
+		return ResponseEntity.ok(EmployeeMapper.toDTO(service.getEmployeeById(id)));
 	}
 
+	// ✅ UPDATE (ADMIN)
 	@PutMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
-	public EmployeeResponseDTO update(@PathVariable Long id, @Valid @RequestBody EmployeeRequestDTO dto) {
+	public ResponseEntity<EmployeeResponseDTO> update(@PathVariable Long id,
+			@Valid @RequestBody EmployeeRequestDTO dto) {
 
 		Employee emp = EmployeeMapper.toEntity(dto);
-		return EmployeeMapper.toDTO(service.updateEmployee(id, emp));
+		Employee updated = service.updateEmployee(id, emp);
+
+		return ResponseEntity.ok(EmployeeMapper.toDTO(updated));
 	}
 
+	// ✅ DELETE (ADMIN)
 	@DeleteMapping("/{id}")
 	@PreAuthorize("hasRole('ADMIN')")
 	public ResponseEntity<Void> delete(@PathVariable Long id) {
-
 		service.deleteEmployee(id);
 		return ResponseEntity.noContent().build();
 	}

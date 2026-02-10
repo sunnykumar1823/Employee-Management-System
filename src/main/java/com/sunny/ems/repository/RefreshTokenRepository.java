@@ -5,10 +5,13 @@ import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.sunny.ems.entity.RefreshToken;
+import com.sunny.ems.entity.User;
 
 public interface RefreshTokenRepository extends JpaRepository<RefreshToken, Long> {
 
 	Optional<RefreshToken> findByToken(String token);
+
+	void deleteByUser(User user);
 
 	void deleteByUserId(Long userId);
 }

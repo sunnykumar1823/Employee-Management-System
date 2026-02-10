@@ -1,7 +1,7 @@
 package com.sunny.ems.service;
 
-import java.util.List;
-
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.sunny.ems.entity.Employee;
@@ -23,8 +23,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public List<Employee> getAllEmployees() {
-		return repo.findAll();
+	public Page<Employee> getAllEmployees(int page, int size) {
+		return repo.findAll(PageRequest.of(page, size));
 	}
 
 	@Override
@@ -42,18 +42,14 @@ public class EmployeeServiceImpl implements EmployeeService {
 	}
 
 	@Override
-	public void deleteEmployee(Long id) {
-
-		Employee emp = repo.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
-
-		repo.delete(emp);
-	}
-
-	@Override
 	public Employee getEmployeeById(Long id) {
-
 		return repo.findById(id).orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
 	}
 
+	@Override
+	public void deleteEmployee(Long id) {
+		Employee emp = repo.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + id));
+		repo.delete(emp);
+	}
 }

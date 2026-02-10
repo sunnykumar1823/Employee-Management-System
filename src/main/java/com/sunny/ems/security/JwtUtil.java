@@ -24,7 +24,7 @@ public class JwtUtil {
 
 	// Generate Token with ROLE
 	public String generateToken(String email, Role role) {
-		return Jwts.builder().setSubject(email).claim("role", role.name()).setIssuedAt(new Date())
+		return Jwts.builder().setSubject(email).claim("role", "ROLE_" + role.name()).setIssuedAt(new Date())
 				.setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
 				.signWith(getSigningKey(), SignatureAlgorithm.HS256).compact();
 

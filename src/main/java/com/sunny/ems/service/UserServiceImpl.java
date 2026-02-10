@@ -18,44 +18,30 @@ public class UserServiceImpl implements UserService {
 		this.passwordEncoder = passwordEncoder;
 	}
 
+	// ✅ REGISTER
 	@Override
 	public User register(User user) {
-
-		user.setPassword(passwordEncoder.encode(user.getPassword()));
-
-		// ✅ DEFAULT ROLE
 		user.setRole(Role.USER);
-
+		user.setPassword(passwordEncoder.encode(user.getPassword()));
 		return userRepository.save(user);
 	}
 
+	// ✅ LOGIN / AUTHENTICATE
 	@Override
-	public User login(String email, String password) {
-
-		User user = findByEmail(email);
-
-		if (!passwordEncoder.matches(password, user.getPassword())) {
-			throw new RuntimeException("Invalid credentials");
-		}
-
-		return user;
-	}
-
-	@Override
-	public User findByEmail(String email) {
-		return userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
-	}
-
-	// ✅ LOGIN LOGIC HERE
-	@Override
-	public User authenticate(String email, String password) {
+	public User authenticate(String email, String Password) {
 
 		User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("User not found"));
 
-		if (!passwordEncoder.matches(password, user.getPassword())) {
+		if (!passwordEncoder.matches(Password, user.getPassword())) {
 			throw new RuntimeException("Invalid password");
 		}
 
 		return user;
+	}
+
+	// ✅ FIND USER
+	@Override
+	public User findByEmail(String email) {
+		return userRepository.findByEmail(email).orElse(null);
 	}
 }

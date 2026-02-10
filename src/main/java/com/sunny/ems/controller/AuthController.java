@@ -26,29 +26,28 @@ public class AuthController {
 		this.jwtUtil = jwtUtil;
 	}
 
-	// ✅ REFRESH TOKEN API
+	// 🔁 ROTATING REFRESH
 	@PostMapping("/refresh")
-	public ResponseEntity<Map<String, String>> refreshToken(@RequestParam String refreshToken) {
+	public ResponseEntity<Map<String, String>> refresh(@RequestParam String refreshToken) {
 
-		RefreshToken token = refreshService.verifyToken(refreshToken);
+		RefreshToken newToken = refreshService.verifyAndRotate(refreshToken);
 
-		User user = token.getUser();
+		User user = newToken.getUser();
 
-		String newAccessToken = jwtUtil.generateToken(user.getEmail(), user.getRole());
+		String newAccess = jwtUtil.generateToken(user.getEmail(), user.getRole());
 
 		Map<String, String> response = new HashMap<>();
-		response.put("accessToken", newAccessToken);
-		response.put("refreshToken", token.getToken()); // same token reused
+		response.put("accessToken", newAccess);
+		response.put("refreshToken", newToken.getToken());
 
 		return ResponseEntity.ok(response);
 	}
 
-	// ✅ LOGOUT
+	// 🚪 LOGOUT
 	@PostMapping("/logout")
 	public ResponseEntity<String> logout(@RequestParam Long userId) {
 
 		refreshService.deleteByUserId(userId);
-
-		return ResponseEntity.ok("Logged out successfully");
+		return ResponseEntity.ok("Logged out");
 	}
 }

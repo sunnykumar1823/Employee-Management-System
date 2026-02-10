@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.UUID;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.sunny.ems.entity.RefreshToken;
 import com.sunny.ems.entity.User;
@@ -20,10 +21,12 @@ public class RefreshTokenService {
 		this.repo = repo;
 	}
 
-	// ✅ CREATE TOKEN ON LOGIN
+	// ✅ CREATE (delete old first)
+	@Transactional
 	public RefreshToken createRefreshToken(User user) {
 
-		repo.deleteByUserId(user.getId()); // old token delete
+		// 🔥 VERY IMPORTANT — remove old token first
+		repo.deleteByUserId(user.getId());
 
 		RefreshToken token = new RefreshToken();
 		token.setUser(user);
@@ -33,21 +36,25 @@ public class RefreshTokenService {
 		return repo.save(token);
 	}
 
-	// ✅ VERIFY TOKEN (USED IN /auth/refresh)
-	public RefreshToken verifyToken(String token) {
+	// 🔁 VERIFY + ROTATE
+	@Transactional
+	public RefreshToken verifyAndRotate(String oldToken) {
 
-		RefreshToken refreshToken = repo.findByToken(token)
+		RefreshToken token = repo.findByToken(oldToken)
 				.orElseThrow(() -> new RuntimeException("Invalid refresh token"));
 
-		if (refreshToken.getExpiryDate().isBefore(Instant.now())) {
-			repo.delete(refreshToken);
+		if (token.getExpiryDate().isBefore(Instant.now())) {
+			repo.delete(token);
 			throw new RuntimeException("Refresh token expired");
 		}
 
-		return refreshToken;
+		User user = token.getUser();
+
+		// old token removed automatically by createRefreshToken
+		return createRefreshToken(user);
 	}
 
-	// ✅ LOGOUT
+	// 🚪 LOGOUT
 	public void deleteByUserId(Long userId) {
 		repo.deleteByUserId(userId);
 	}
